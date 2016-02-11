@@ -1,0 +1,23 @@
+{
+  "job":
+  [
+    {
+      "release": 0,
+      "deadline": 6,
+      "executions":
+      [
+        { "start": 2, "time": 2, "processor": 1, "color": "blue" }
+      ],
+      "task": 1
+    },
+    {
+      "release": 0,
+      "deadline": 8,
+      "executions":
+      [
+        { "start": 4, "time": 2, "processor": 2, "color": "green" }
+      ],
+      "task": 2
+    }
+  ]
+}
