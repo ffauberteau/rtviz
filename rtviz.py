@@ -70,7 +70,7 @@ class Job:
     def get_last_execution(self):
         last_execution = None
         for execution in self.get_executions():
-            if last_execution is None or execution['start'] > first_execution['start']:
+            if last_execution is None or execution['start'] > last_execution['start']:
                 last_execution = execution
         return last_execution
 
