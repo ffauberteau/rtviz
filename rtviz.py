@@ -160,8 +160,9 @@ class Processor:
         return 'P' + str(self.get_id())
 
 class ScheduleDrawer:
-    def __init__(self, schedule):
+    def __init__(self, schedule, scale=1):
         self._schedule = schedule
+        self._scale = scale
 
     def get_job(self, job):
         rx = job.get_x_release()
@@ -175,9 +176,17 @@ class ScheduleDrawer:
             w = job.get_width(execution)
             h = JOB_HEIGHT
             s += '  \\draw'
+            dashed = None
+            try:
+                dashed = execution['dashed']
+            except KeyError:
+                pass
             try:
                 color = execution['color']
-                s += '[fill=' + color + ', fill opacity=0.5]'
+                if dashed:
+                    s += '[pattern=north east lines, pattern color=' + color + ']'
+                else:
+                    s += '[fill=' + color + ', fill opacity=0.5]'
             except KeyError:
                 pass
             s += ' (' + str(x) + ',' + str(y) + ') rectangle (' + str(x + w) + ',' + str(y + h) + ');\n'
@@ -213,10 +222,12 @@ class ScheduleDrawer:
         return '\n'.join([self.get_timeline(t, processor) for t in self._schedule.tasks.values()])
 
     def __str__(self):
-        s = '\\begin{tikzpicture}\n' + \
-            '\n'.join([self.get_timelines(p) for p in self._schedule.processors.values()]) + '\n' + \
-            '\n'.join([self.get_job(j) for j in self._schedule.jobs]) + '\n' + \
-            '\\end{tikzpicture}'
+        s  = '\\begin{tikzpicture}'
+        if self._scale is not 1:
+            s += '[scale=' + str(self._scale) +', every node/.style={scale=' + str(self._scale) + '}]'
+        s += '\n' + '\n'.join([self.get_timelines(p) for p in self._schedule.processors.values()]) + '\n' + \
+             '\n'.join([self.get_job(j) for j in self._schedule.jobs]) + '\n' + \
+             '\\end{tikzpicture}'
         return s
 
 class Schedule:
@@ -272,18 +283,18 @@ class Schedule:
             self.processors[other.get_id()] = other
         return self
 
-    def __str__(self):
-        drawer = ScheduleDrawer(self)
-        return str(drawer)
-
 def parse(filename):
     sched = Schedule()
-
     trace = json.load(filename)
+    try:
+        scale = trace['scale']
+        drawer = ScheduleDrawer(sched, scale)
+    except KeyError:
+        drawer = ScheduleDrawer(sched)
     for job_param in trace['job']:
         job = Job(sched, **job_param)
         sched += job
-    return sched
+    return drawer
 
 def main():
     parser = argparse.ArgumentParser(
@@ -298,8 +309,8 @@ def main():
     args = parser.parse_args()
     for f in args.files:
         try:
-            sched = parse(f)
-            print(sched, file=args.output)
+            drawer = parse(f)
+            print(drawer, file=args.output)
         finally:
             f.close()
 
