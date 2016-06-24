@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#
+
 # Copyright (c) 2016, Frédéric Fauberteau
 # All rights reserved.
 #
